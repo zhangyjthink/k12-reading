@@ -24,47 +24,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==================== 身份验证与登录 (AUTH) ====================
 function initAuth() {
-  const token = localStorage.getItem('omni_auth_token');
-  const storedUser = localStorage.getItem('omni_auth_user');
+  const token = localStorage.getItem("omni_auth_token");
+  const storedUser = localStorage.getItem("omni_auth_user");
 
   if (token && storedUser) {
-    currentUser = JSON.parse(storedUser);
-    document.getElementById('auth-modal').classList.add('hidden');
-    document.getElementById('header-username').innerText = currentUser.username;
-    loadArticles(currentGrade, currentFilter, currentPage);
+    try {
+      currentUser = JSON.parse(storedUser);
+      document.getElementById("auth-modal").classList.add("hidden");
+      document.getElementById("header-username").innerText = currentUser.username;
+      loadArticles(currentGrade, currentFilter, currentPage);
+    } catch (e) {
+      localStorage.removeItem("omni_auth_token");
+      localStorage.removeItem("omni_auth_user");
+      document.getElementById("auth-modal").classList.remove("hidden");
+    }
   } else {
-    document.getElementById('auth-modal').classList.remove('hidden');
+    document.getElementById("auth-modal").classList.remove("hidden");
   }
 
-  // 绑定表单提交
-  const loginForm = document.getElementById('login-form');
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const u = document.getElementById('login-username').value.trim();
-    const p = document.getElementById('login-password').value.trim();
-    const errBox = document.getElementById('login-error');
+  const loginForm = document.getElementById("login-form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const u = (document.getElementById("login-username").value || "").trim();
+      const p = (document.getElementById("login-password").value || "").trim();
+      const errBox = document.getElementById("login-error");
 
-    // 前端静态登录校验（支持 GitHub Pages 纯静态托管）
-    if ((u.toLowerCase() === "william") && p === "8888") {
-      const mockUser = { username: "william", role: "student" };
-      localStorage.setItem("omni_auth_token", "static_token_william");
-      localStorage.setItem("omni_auth_user", JSON.stringify(mockUser));
-      currentUser = mockUser;
-      document.getElementById("header-username").innerText = currentUser.username;
-      document.getElementById("auth-modal").classList.add("hidden");
-      errBox.classList.add("hidden");
-      loadArticles(currentGrade, currentFilter, currentPage);
-      return;
-    } else {
-      errBox.innerText = "用户名或密码错误，请重试（账号: william / 密码: 8888）";
-      errBox.classList.remove("hidden");
-      return;
-    }
-    } catch (err) {
-      errBox.innerText = '登录服务响应超时，请重试';
-      errBox.classList.remove('hidden');
-    }
-  });
+      if (u.toLowerCase() === "william" && p === "8888") {
+        const mockUser = { username: "william", role: "student" };
+        localStorage.setItem("omni_auth_token", "static_token_william");
+        localStorage.setItem("omni_auth_user", JSON.stringify(mockUser));
+        currentUser = mockUser;
+        document.getElementById("header-username").innerText = currentUser.username;
+        document.getElementById("auth-modal").classList.add("hidden");
+        errBox.classList.add("hidden");
+        loadArticles(currentGrade, currentFilter, currentPage);
+      } else {
+        errBox.innerText = "用户名或密码错误，请重试（账号: william / 密码: 8888）";
+        errBox.classList.remove("hidden");
+      }
+    });
+  }
 }
 
 function logout() {
