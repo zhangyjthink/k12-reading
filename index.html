@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniRead K12 - The World's Premier English Reading System</title>
+  <!-- Tailwind CSS & Fonts & FontAwesome & Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .serif-article { font-family: 'Merriweather', serif; line-height: 1.9; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
+    .dark .glass-card { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(51, 65, 85, 0.8); }
+    .vocab-chip { cursor: pointer; border-bottom: 2px dashed #3b82f6; transition: all 0.2s; }
+    .vocab-chip:hover { background-color: #dbeafe; color: #1d4ed8; }
+    .dark .vocab-chip:hover { background-color: #1e3a8a; color: #93c5fd; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 min-h-screen">
+
+  <!-- ==================== 登录模态框 (AUTH MODAL) ==================== -->
+  <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+    <div class="glass-card max-w-md w-full rounded-2xl shadow-2xl p-8 border border-indigo-100 dark:border-slate-800 text-center relative overflow-hidden">
+      <div class="w-16 h-16 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl shadow-lg mb-4">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">OmniRead K12 登录</h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-6">全世界最强 K1-G12 英文全景分级阅读理解平台</p>
+
+      <form id="login-form" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">用户名 (Username)</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+            <input type="text" id="login-username" required placeholder="请输入用户名" value="william"
+                   class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">密码 (Password)</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+            <input type="password" id="login-password" required placeholder="请输入密码" value="8888"
+                   class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition">
+          </div>
+        </div>
+
+        <div id="login-error" class="hidden text-xs text-rose-500 font-medium py-1 text-center bg-rose-50 dark:bg-rose-950/30 rounded-lg"></div>
+
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold rounded-xl shadow-md transition transform active:scale-95 text-sm flex items-center justify-center space-x-2">
+          <span>立即开启学习之旅</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+
+        <div class="pt-2 text-center text-xs text-slate-400">
+          系统特权账户：<span class="font-mono text-indigo-500 font-semibold">william</span> / <span class="font-mono text-indigo-500 font-semibold">8888</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 顶部导航栏 (HEADER) ==================== -->
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- LOGO -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateHome()">
+        <div class="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-book-open-reader"></i>
+        </div>
+        <div>
+          <span class="text-lg font-black tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">OmniRead K12</span>
+          <span class="hidden md:inline-block ml-2 px-2 py-0.5 text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">2,400 Articles Active</span>
+        </div>
+      </div>
+
+      <!-- 右侧控制区: 用户名、积分奖励、词库、深色切换 -->
+      <div class="flex items-center space-x-3">
+        <!-- 积分徽章 -->
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 rounded-xl border border-amber-200 dark:border-amber-900 text-xs font-bold shadow-sm">
+          <i class="fa-solid fa-star text-amber-500 text-sm"></i>
+          <span>积分: <span id="user-points" class="text-sm font-extrabold">0</span></span>
+        </div>
+
+        <!-- 答题计数 -->
+        <div class="hidden sm:flex items-center space-x-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs font-semibold">
+          <i class="fa-solid fa-circle-check text-xs"></i>
+          <span>已完成: <span id="completed-count">0</span> 篇</span>
+        </div>
+
+        <!-- 用户信息 -->
+        <div class="flex items-center space-x-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+          <span class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-bold shadow-inner">
+            W
+          </span>
+          <span id="header-username" class="text-xs font-bold text-slate-700 dark:text-slate-200 hidden md:inline">william</span>
+          <button onclick="logout()" title="退出登录" class="text-slate-400 hover:text-rose-500 text-xs p-1 transition">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+
+        <!-- 主题切换 -->
+        <button id="theme-toggle" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== 主内容区 (CONTAINER) ==================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- 顶部综合状态卡片 -->
+    <section class="glass-card rounded-2xl p-6 mb-8 shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center md:text-left">
+        <div class="flex items-center space-x-4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 pb-4 md:pb-0 pr-4">
+          <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase">年级范围</div>
+            <div class="text-lg font-black text-slate-900 dark:text-white">G1 至 G12 全阶梯</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 pb-4 md:pb-0 pr-4">
+          <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-book-atlas"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase">文库总篇数</div>
+            <div class="text-lg font-black text-slate-900 dark:text-white">2,400 篇全量</div>
+            <div class="text-[11px] text-emerald-600 dark:text-emerald-400">各年级：50虚构 + 150非虚构</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 pb-4 md:pb-0 pr-4">
+          <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase">积分奖励机制</div>
+            <div class="text-lg font-black text-amber-600 dark:text-amber-400">满分 +10分</div>
+            <div class="text-[11px] text-rose-500 font-medium">错 1 题扣 1 分</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase">测评标准</div>
+            <div class="text-lg font-black text-purple-600 dark:text-purple-400">CCSS 六维雷达</div>
+            <div class="text-[11px] text-slate-500">Lexile 蓝思 + CEFR 对标</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 年级选择栏 (G1 - G12) -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-2">
+          <i class="fa-solid fa-cubes-stacked text-indigo-500"></i>
+          <span>选择学习学段 (Grades)</span>
+        </h3>
+        <span id="current-grade-badge" class="px-2.5 py-1 text-xs font-extrabold bg-indigo-600 text-white rounded-lg shadow-sm">当前：Grade 1 (G1)</span>
+      </div>
+
+      <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-none" id="grade-selector-container">
+        <!-- 动态注入 G1 - G12 按钮 -->
+      </div>
+    </div>
+
+    <!-- 题材过滤栏: 全部 (200) | 虚构 Fiction (50) | 非虚构 Non-Fiction (150) -->
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div class="flex space-x-2 bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-xl">
+        <button onclick="setFilterType('all')" id="filter-all" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm">
+          全部文章 (200)
+        </button>
+        <button onclick="setFilterType('fiction')" id="filter-fiction" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-indigo-600">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1 text-pink-500"></i>虚构故事 Fiction (50)
+        </button>
+        <button onclick="setFilterType('nonfiction')" id="filter-nonfiction" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-indigo-600">
+          <i class="fa-solid fa-compass mr-1 text-emerald-500"></i>非虚构探索 Non-Fiction (150)
+        </button>
+      </div>
+
+      <!-- 分页信息指示 -->
+      <div class="text-xs text-slate-500 flex items-center space-x-2">
+        <span id="pagination-info">第 1 / 10 页</span>
+        <div class="flex space-x-1">
+          <button onclick="prevPage()" id="prev-page-btn" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button onclick="nextPage()" id="next-page-btn" class="w-7 h-7 rounded-lg border border-slate-300 dark:border-slate-700 flex items-center justify-center text-xs hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 文章卡片网格 (ARTICLE GRID) ==================== -->
+    <div id="articles-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <!-- 动态注入 200 篇文章列表 -->
+    </div>
+
+    <!-- ==================== 文章阅读与答题详情模态 (READING & QUIZ MODAL) ==================== -->
+    <div id="reader-modal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-md overflow-y-auto p-4 md:p-8">
+      <div class="max-w-4xl mx-auto glass-card rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative mb-12">
+        
+        <!-- 头部大图与导航栏 -->
+        <div class="relative h-64 md:h-80 w-full overflow-hidden bg-slate-900">
+          <img id="modal-article-image" src="" alt="Article Banner" class="w-full h-full object-cover opacity-85">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+          
+          <!-- 关闭按钮 -->
+          <button onclick="closeReaderModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-900/60 text-white flex items-center justify-center hover:bg-slate-900 transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+
+          <!-- 标题及元数据 -->
+          <div class="absolute bottom-6 left-6 right-6 text-white">
+            <div class="flex items-center space-x-2 mb-2">
+              <span id="modal-type-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-600 text-white shadow">Fiction</span>
+              <span id="modal-lexile-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 backdrop-blur-sm text-white">350L · A1</span>
+              <span id="modal-words-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/20 backdrop-blur-sm text-white">120 words</span>
+            </div>
+            <h1 id="modal-article-title" class="text-2xl md:text-3xl font-extrabold tracking-tight">Article Title Here</h1>
+          </div>
+        </div>
+
+        <!-- 朗读控制器 -->
+        <div class="bg-slate-100/80 dark:bg-slate-800/80 px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center space-x-3">
+            <button id="tts-play-btn" onclick="toggleSpeech()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center space-x-2 shadow-sm transition">
+              <i class="fa-solid fa-play" id="tts-icon"></i>
+              <span id="tts-label">听纯正真人朗读</span>
+            </button>
+            <div class="flex items-center space-x-1 text-xs text-slate-500">
+              <span>语速:</span>
+              <button onclick="setSpeechRate(0.8)" class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 text-[11px] font-semibold hover:bg-indigo-50">0.8x</button>
+              <button onclick="setSpeechRate(1.0)" class="px-2 py-0.5 rounded bg-indigo-600 text-white text-[11px] font-semibold">1.0x</button>
+              <button onclick="setSpeechRate(1.2)" class="px-2 py-0.5 rounded bg-white dark:bg-slate-700 text-[11px] font-semibold hover:bg-indigo-50">1.2x</button>
+            </div>
+          </div>
+          <div class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+            💡 提示：点击下划线重点单词，可立即查阅音标及释义
+          </div>
+        </div>
+
+        <!-- 正文区域 -->
+        <div class="p-6 md:p-10 space-y-6">
+          <div id="modal-article-content" class="serif-article text-lg text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+            <!-- 正文自动注入 -->
+          </div>
+
+          <!-- 核心词汇卡片 -->
+          <div class="bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-900/50 mt-8">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-3 flex items-center space-x-2">
+              <i class="fa-solid fa-spell-check"></i>
+              <span>本篇核心学术词汇 (Academic Vocabulary)</span>
+            </h4>
+            <div id="modal-vocab-list" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- 词汇卡注入 -->
+            </div>
+          </div>
+
+          <!-- ==================== CCSS 阅读理解问答 (QUIZ SECTION) ==================== -->
+          <div class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <i class="fa-solid fa-clipboard-question text-indigo-600"></i>
+                  <span>CCSS 六维深度理解测评</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">4 道精选认知推断题 · 全对奖励 10 积分，错一题扣 1 积分</p>
+              </div>
+              <div id="quiz-score-badge" class="hidden px-3.5 py-1.5 rounded-xl font-extrabold text-sm shadow-sm">
+                本次得分：--
+              </div>
+            </div>
+
+            <!-- 问题列表容器 -->
+            <div id="modal-questions-container" class="space-y-6">
+              <!-- 问题动态注入 -->
+            </div>
+
+            <!-- 提交按钮 -->
+            <div class="mt-8 text-center" id="quiz-submit-box">
+              <button onclick="submitQuiz()" class="px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-lg transition transform active:scale-95 text-sm flex items-center justify-center space-x-2 mx-auto">
+                <i class="fa-solid fa-check-double"></i>
+                <span>提交答案并核算积分</span>
+              </button>
+            </div>
+
+            <!-- 答题后认知雷达图展示 -->
+            <div id="radar-container" class="hidden mt-8 p-6 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <h4 class="text-sm font-bold text-center text-slate-800 dark:text-slate-200 mb-4">
+                📊 学生认知掌握度雷达 (Cognitive Mastery Radar)
+              </h4>
+              <div class="max-w-xs mx-auto">
+                <canvas id="quiz-radar-chart"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 引用主交互脚本 -->
+  <script src="/app.js"></script>
+</body>
+</html>
